@@ -70,23 +70,29 @@ Restore a RAC database backup from one 2-node cluster to another 2-node cluster 
 ---
 
 ### D. Restore Controlfile and Mount Database (Target Cluster)
+
 1. **Start Instance NOMOUNT Using PFILE**  
    ```
    sqlplus / as sysdba
+   ```
+   ```
    startup nomount pfile='/tmp/initDBNAME.ora';
    ```
 
 2. **Restore Controlfile from Autobackup**  
-   ```
+   ```bash
    rman target /
-   RMAN> restore controlfile from '/backup/<controlfile_autobackup_piece>';
-   RMAN> alter database mount;
+   ```
+
+   ```
+   restore controlfile from '/backup/<controlfile_autobackup_piece>';
+   alter database mount;
    ```
    - Use DBID if autobackup path unknown; default search applies
 
 3. **Catalog Backups if Path Differs**  
    ```
-   RMAN> catalog start with '/backup/' noprompt;
+   catalog start with '/backup/' noprompt;
    ```
 
 ---
@@ -96,7 +102,8 @@ Restore a RAC database backup from one 2-node cluster to another 2-node cluster 
 - FRA/log_archive_dest typically goes to +FRA  
 
 **Example RMAN Run Block**  
-```
+
+```bash
 RMAN> run {
     set newname for database to '+DATA';
     restore database;
@@ -112,12 +119,20 @@ RMAN> run {
 1. **Create/Relocate Online Redo Logs**  
    - Place in +DATA (or +FRA per policy)  
    - Create threads for each RAC instance (example for two instances):
-   ```
+     
+   ```bash
    sqlplus / as sysdba
+   ```
+   
    -- Option A: Rename (if files exist and need moving)
-   -- alter database rename file '<old_path>/redo01.log' to '+DATA';
+   
+   ```
+   alter database rename file '<old_path>/redo01.log' to '+DATA';
+   ```
    
    -- Option B: Create fresh groups and drop old ones
+
+   ```
    alter database add logfile thread 1 group 1 '+DATA' size 1G;
    alter database add logfile thread 1 group 2 '+DATA' size 1G;
    alter database add logfile thread 2 group 3 '+DATA' size 1G;
@@ -125,26 +140,35 @@ RMAN> run {
    ```
    *Enable thread 2 after instance 2 creation; can be left defined for now*
 
-2. **Create SPFILE in ASM and Set RAC-Specific Parameters**  
+3. **Create SPFILE in ASM and Set RAC-Specific Parameters**
+     
    ```
    create spfile='+DATA/DBNAME/spfileDBNAME.ora' from pfile='/tmp/initDBNAME.ora';
    shutdown immediate;
    startup mount;
-   
+   ```
    -- Set RAC parameters
+   
+   ```
    alter system set cluster_database=true scope=spfile;
    alter system set instance_number=1 sid='DBNAME1' scope=spfile;
    alter system set thread=1 sid='DBNAME1' scope=spfile;
    alter system set undo_tablespace='UNDOTBS1' sid='DBNAME1' scope=both;
+   ```
    
    -- Create UNDO for second instance
+   
+   ```
    create undo tablespace UNDOTBS2 datafile '+DATA' size 5G autoextend on;
    
    alter system set instance_number=2 sid='DBNAME2' scope=spfile;
    alter system set thread=2 sid='DBNAME2' scope=spfile;
    alter system set undo_tablespace='UNDOTBS2' sid='DBNAME2' scope=both;
+   ```
    
    -- Set FRA, archiving, and other basics
+
+   ```bash
    alter system set db_recovery_file_dest='+FRA' scope=both;
    alter system set db_recovery_file_dest_size='1T' scope=both;
    alter system set log_archive_dest_1='LOCATION=USE_DB_RECOVERY_FILE_DEST' scope=both;
