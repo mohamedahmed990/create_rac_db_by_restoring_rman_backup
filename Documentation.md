@@ -209,22 +209,6 @@ RMAN> run {
 
 ---
 
-### I. (Optional) Export and Import Services and Resource Profiles
-- *For source services on 19.20+ GI, use JSON export/import*
-
-**On Source:**  
-```
-srvctl config database -db DBNAME -S 2 -exportfile /tmp/db.json
-srvctl config service -db DBNAME -S 2 -exportfile /tmp/service.json
-```
-
-**On Target:**  
-```
-srvctl add database -importfile /tmp/db.json
-srvctl add service -importfile /tmp/service.json
-```
-
----
 
 ## Key Considerations and Tips
 - Ensure source and target database versions and RU levels are compatible
