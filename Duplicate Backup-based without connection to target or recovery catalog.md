@@ -44,15 +44,12 @@
    File: `/tmp/initDBNAME.ora`  
    Example Contents:
    ```
-   db_name=source_db_name
-   db_unique_name=target_db_name
-   diagnostic_dest=/u01/app/oracle
-   control_files='+FRA/DBNAME/CONTROLFILE/control01.ctl' #need_
+   db_name=new_db_name
+   db_unique_name=new_db_name
    cluster_database=false
    enable_pluggable_database=true
    compatible='19.0.0'
    instance_number=1
-   # Instance-specific undo and redo will be set later; keep minimal for now
    ```
    *Adjust parameters to match your environment*
 
@@ -70,7 +67,7 @@
    startup nomount pfile='<path_to_pfile>';
    ```
 
-2. connect to the instance in rman 
+2. connect to the auxiliary instance in rman 
   ```
   rman auxiliary /
   ```
@@ -86,7 +83,7 @@
 ```
 run {
 	SET NEWNAME FOR DATABASE TO NEW;
-	DUPLICATE DATABASE TO 'TARGET'
+	DUPLICATE DATABASE TO '<new_db_name>'
 		BACKUP LOCATION '/tmp/backup'
 		NOFILENAMECHECK;
 }
@@ -113,10 +110,10 @@ E. Create spfile in ASM and Modify the location of the spfile
    mkdir +DATA/TARGET/PARAMETERFILE
    ```
    
-   - now create in sqlplus , create spfile in the new location in ASM
+   - create spfile in the new location in ASM
      
    ```
-   create spfile='+DATA/TARGET/PARAMETERFILE/spfileTARGET.ora';
+   create spfile='+DATA/TARGET/PARAMETERFILE/spfileTEST.ora' from pfile='<path_to_pfile>' ;
    ```
 3. add the spfile location parameter in the pfile
 
@@ -129,12 +126,6 @@ E. Create spfile in ASM and Modify the location of the spfile
    ```
    spfile='+DATA/TARGET/PARAMETERFILE/spfileTARGET.ora'
    ```
-4. shutdown the database and start it with the spfile in the ASM
-
-   - remove the spfile in the file system and startup the database
-
-     ```
-     startup 
 
 --- 
 ### F. Prepare Instance/RAC Settings
@@ -161,7 +152,6 @@ E. Create spfile in ASM and Modify the location of the spfile
    alter system set db_recovery_file_dest_size='<size>' scope=both;
    alter system set log_archive_dest_1='LOCATION=USE_DB_RECOVERY_FILE_DEST' scope=both;
    ```
-
 
 ---
 
