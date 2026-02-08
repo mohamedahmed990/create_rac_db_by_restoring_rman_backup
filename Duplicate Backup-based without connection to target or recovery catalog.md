@@ -34,14 +34,12 @@
 
 ### B. Transfer Backups to the Target Cluster
 - Copy all backup pieces to a target directory (e.g., `/tmp/backup`)  
-- One node access is sufficient for restore; ensure both nodes can access if needed
 
 ---
 
 ### C. Prepare the Target RAC Database Initialization Parameters
 1. **Create Minimal PFILE on Target for NOMOUNT Startup**  
-   File: `/tmp/initDBNAME.ora`  
-   Example Contents:
+   
    ```
    db_name=new_db_name
    db_unique_name=new_db_name
@@ -66,19 +64,18 @@
    startup nomount pfile='<path_to_pfile>';
    ```
 
-2. connect to the auxiliary instance in rman 
+2. connect to the auxiliary instance in rman :
   ```
   rman auxiliary /
   ```
   
-  - catalog the backup if backup_path differs
+  - catalog the backup if backup_path differs :
     
   ```
   catalog start with '<path_to_backup>';
   ```
 
-**Example RMAN Run Block**  
-
+3. Duplicate the Backup to the New Database :
 ```
 run {
 	SET NEWNAME FOR DATABASE TO NEW;
@@ -89,7 +86,7 @@ run {
 ```
 *Note: For point-in-time recovery, use `SET UNTIL {SCN|TIME|SEQUENCE}`*
 
-3. create pfile from spfile to backup the spfile
+4. create pfile from spfile to backup the new spfile
 
   ```
   create pfile from spfile ;
