@@ -14,7 +14,6 @@
 3. Build a single parameter file on the target suitable for RAC 
 4. Use RMAN Duplicate with backup-based 
 5. Register and configure the RAC database resource with srvctl
-6. Create instances on both nodes
 
 ---
 
@@ -90,7 +89,7 @@ run {
 ```
 *Note: For point-in-time recovery, use `SET UNTIL {SCN|TIME|SEQUENCE}`*
 
-3. create pfile from spfile to update the pfile
+3. create pfile from spfile to backup the spfile
 
   ```
   create pfile from spfile ;
@@ -130,7 +129,7 @@ E. Create spfile in ASM and Modify the location of the spfile
 --- 
 ### F. Prepare Instance/RAC Settings
 
-1. **Set RAC-Specific Parameters**
+1. **Start The instance with spfile and Set RAC-Specific Parameters**
      
    ```
    alter system set cluster_database=true scope=spfile;
@@ -172,6 +171,7 @@ E. Create spfile in ASM and Modify the location of the spfile
    ```
    srvctl start database -db DBNAME
    srvctl status database -db DBNAME
+   srvctl config database -db DBNAME
    ```
 
 ---
